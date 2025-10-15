@@ -1,0 +1,51 @@
+{
+  "name": "sora-dl",
+  "version": "1.0.0",
+  "description": "A powerful Sora video downloader with metadata extraction",
+  "main": "dist/index.js",
+  "bin": {
+    "sora-dl": "dist/cli.js"
+  },
+  "scripts": {
+    "start": "node dist/cli.js",
+    "dev": "ts-node src/cli.ts",
+    "build": "tsc",
+    "install-global": "npm install -g .",
+    "test": "node dist/cli.js download local examples/feed.json --count 1 --list"
+  },
+  "keywords": [
+    "video",
+    "downloader",
+    "sora",
+    "metadata",
+    "cli",
+    "openai",
+    "feed"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.7.7",
+    "commander": "^11.0.0",
+    "progress": "^2.0.3",
+    "puppeteer": "^24.25.0",
+    "sqlite": "^5.1.1",
+    "sqlite3": "^5.1.7"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/progress": "^2.0.7",
+    "@types/sqlite3": "^3.1.11",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "files": [
+    "dist/",
+    "src/",
+    "README.md",
+    "LICENSE"
+  ]
+}

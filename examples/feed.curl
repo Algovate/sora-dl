@@ -1,0 +1,16 @@
+curl 'https://sora.chatgpt.com/backend/public/nf2/feed' \
+  -H 'accept: */*' \
+  -H 'accept-language: en-US,en;q=0.9,zh-CN;q=0.8,zh;q=0.7,ja;q=0.6' \
+  -H 'cache-control: no-cache' \
+  -b 'oai-did=4ab8e873-c2e3-4df2-ad1e-a4a643d8ba38; __Host-next-auth.csrf-token=6dd09dc5b14caf8c6b87a97e439e929da1efebc78d752ebbd3e0383e98bfc5b7%7C6eaa72d6d5f9fbabc7c16058083b668a44a4d8a88dbdad1ef7176faab9ffb15f; __Secure-next-auth.callback-url=https%3A%2F%2Fsora.com; _cfuvid=S5y0vJG4kUk39iDAqW8kDNlt9uEZnoWBs9BYarmA3bM-1760528011840-0.0.1.1-604800000; cf_clearance=o58F7R0TyvExDW7J3M6Qo6mU1yq5KHhqcbp8zyDhZeM-1760529122-1.2.1.1-xIl73Q7Tk14j6uY7dV8wbtcoGoC6CJKDRZE5Gh_JgYIcOnxRX5Rumemw_9z6ZiQrRYh4oP.TJRn4Y6J82.x2MKJyDG_Sl_YVgtWuCGWgAfcXJudiSL8O4WlrGu3rtWvNQ.6ZwTxoWJuCJb.aZxFQxafAagHS7Hp_4L2KYRQExqI8fCqMWT_YleY.FgT3bheYs26tufvCiYKp0aLhV1JywJ_LVLMKojTAjK3ec_cw3Kc; __cf_bm=iyplJFo92se9EZGTeqJ5CVtKEuwmyexjh8KGlHxsBto-1760529123-1.0.1.1-CrIQLw5yv71MG8OcFANF_0hUHQILCfOGhuOTdw44Rdzis2zpb153mxlBJeOtR0503DNJrC8Q0cREhpS1MPlvxpJ8vbGRLEGh9tO0LVAfG6w; cf_clearance=SqGSQfrWCr8OwiXPmNI7eKPlTC6.dozqkJAcSqfBUMQ-1760529125-1.2.1.1-oaNhgNrcbsnbPqVzZ0uD1AelAgFR_LwtS0IpmvVNPZlJf.o398mjEJFkxOdtF4EjT9JXJHc_OwbgRJ.rlxVPWgG6eSkrXmvQwk26ebR6cP4ezgI08U6s6UFyNO6t4.s3hbDNNG5twfPi53etcj0UxHVHZVh3cFmYLPog3NVk8.QzOZZvKe9VJWcP9P_FZ0IkZgKJ8EhUa9IybtGjHeGUa5KGB0osKe_9fBZPitdxpLI; _dd_s=rum=2&id=d8ffe6e7-1bb0-4188-8f92-273c66d21140&created=1760528014724&expire=1760530661283; _cfuvid=X8RGuTigrxXzFNUG6KJskiqCI4bYhey1s9fDp5wjqJg-1760529761679-0.0.1.1-604800000; oai-sc=0gAAAAABo742IHkNBEJzfiwlwcmSEPWS_4I8_pAkm7R0Ac8mHnTmhCKT1yF6Y3ZFzLCaJVgx6XH7wUXSzhIqRok0cgHUaf2Zy6efMgP0lCTigtKUJ1j_lL0wp5jzB76pO8soQD2XhdaRORMK8phMvHINuBZqMJPYbunpegIhxZthjGlNzNHzW7CqsBPtqqQvoe3H4kAfcXxYio2i8fEknwokwRhag_kvHGu9z9KwIQRYFSmIQj7XSA0c; __cflb=04dToUYFtawiB6wrxKBLW8bBfWpxvmwrxZNK9LE7gh; __cf_bm=0bLmFFGOuIRhsdkXHFt9_i_IWEzPbsRKevmXKeY8iyk-1760529839-1.0.1.1-wOdtTbxJHV0Ko6uSP06ggTrrltZ.z0s8Qg_z_35ArBn_RAW18xgbURgZH5wTRMYlFXjUJ9Nbp.QSpUerqBZe.7O9WqoaLu418rMfqhLj74Q' \
+  -H 'oai-device-id: 4ab8e873-c2e3-4df2-ad1e-a4a643d8ba38' \
+  -H 'pragma: no-cache' \
+  -H 'priority: u=1, i' \
+  -H 'referer: https://sora.chatgpt.com/' \
+  -H 'sec-ch-ua: "Chromium";v="140", "Not=A?Brand";v="24", "Google Chrome";v="140"' \
+  -H 'sec-ch-ua-mobile: ?0' \
+  -H 'sec-ch-ua-platform: "macOS"' \
+  -H 'sec-fetch-dest: empty' \
+  -H 'sec-fetch-mode: cors' \
+  -H 'sec-fetch-site: same-origin' \
+  -H 'user-agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36'
