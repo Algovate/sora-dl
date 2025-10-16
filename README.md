@@ -2,13 +2,30 @@
 
 Download Sora videos with metadata from OpenAI's Sora feed.
 
+[![npm version](https://badge.fury.io/js/sora-dl.svg)](https://badge.fury.io/js/sora-dl)
+[![npm downloads](https://img.shields.io/npm/dm/sora-dl.svg)](https://www.npmjs.com/package/sora-dl)
+
 ## Install
+
+### Option 1: Install from npm (Recommended)
+
+```bash
+npm install -g sora-dl
+```
+
+### Option 2: Install from source
 
 ```bash
 git clone <repository-url>
 cd sora-dl
 npm install
 npm run build
+```
+
+### Option 3: Use without install
+
+```bash
+npx sora-dl --help
 ```
 
 ## Quick Start
