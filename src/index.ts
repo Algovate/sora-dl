@@ -13,9 +13,9 @@ export class SoraVideoDownloader extends BaseService {
 
   constructor(cookies?: string, downloadOptions?: DownloadOptions) {
     super('SoraVideoDownloader');
-    
+
     this.configManager = ConfigManager.getInstance();
-    
+
     this.logOperation('constructor', {
       hasProvidedCookies: !!cookies,
       downloadOptions
@@ -37,16 +37,16 @@ export class SoraVideoDownloader extends BaseService {
 
   async getFeed() {
     this.logOperationStart('getFeed');
-    
+
     try {
       const feed = await this.api.getFeed();
-      
+
       this.logOperationEnd('getFeed', {
         videoCount: feed.videos.length,
         total: feed.total,
         hasMore: feed.hasMore
       });
-      
+
       return feed;
     } catch (error) {
       this.handleServiceError(error, 'getFeed');
@@ -55,19 +55,19 @@ export class SoraVideoDownloader extends BaseService {
 
   async downloadVideo(video: VideoItem): Promise<string> {
     this.logOperationStart('downloadVideo', { videoId: video.id, title: video.title });
-    
+
     // Validate input
     ValidationUtils.validateRequired(video, 'video');
     ValidationUtils.isVideoItem(video) || ValidationUtils.validateRequired(null, 'valid video item');
-    
+
     try {
       const result = await this.downloader.downloadVideo(video);
-      
-      this.logOperationEnd('downloadVideo', { 
-        videoId: video.id, 
-        resultPath: result 
+
+      this.logOperationEnd('downloadVideo', {
+        videoId: video.id,
+        resultPath: result
       });
-      
+
       return result;
     } catch (error) {
       this.handleServiceError(error, 'downloadVideo');
@@ -90,12 +90,12 @@ export class SoraVideoDownloader extends BaseService {
     log.info('Starting download of recent videos', { count, maxConcurrent });
     const feed = await this.getFeed();
     const videosToDownload = feed.videos.slice(0, count);
-    
+
     if (videosToDownload.length === 0) {
       log.warn('No videos available to download from feed');
       return [];
     }
-    
+
     const result = await this.downloader.downloadAllFromFeed(videosToDownload, maxConcurrent);
     log.info('Recent videos download completed', {
       requested: videosToDownload.length,

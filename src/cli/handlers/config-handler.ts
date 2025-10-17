@@ -15,10 +15,10 @@ export function createConfigCommand(): Command {
     .action(async () => {
       try {
         const configManager = ConfigManager.getInstance();
-        
+
         console.log('📋 Current Configuration:');
         console.log('=' .repeat(40));
-        
+
         // Show app config
         const config = configManager.getConfig();
         console.log('\n🔧 Application Settings:');
@@ -27,17 +27,17 @@ export function createConfigCommand(): Command {
         console.log(`   • Overwrite Files: ${config.overwrite}`);
         console.log(`   • Log Level: ${config.logLevel}`);
         console.log(`   • Debug Mode: ${config.debug}`);
-        
+
         // Show authentication info
         console.log('\n🔐 Authentication:');
         console.log(`   • Status: ❌ Not supported (cookies removed)`);
         console.log(`   • Note: Authentication must be provided via --cookies option`);
-        
+
         // Show file paths
         console.log('\n📁 File Paths:');
         console.log(`   • Config File: ${configManager.getConfigPath()}`);
         console.log(`   • Log Directory: ${config.logToFile ? 'logs/' : 'Not enabled'}`);
-        
+
       } catch (error) {
         handleError(error, 'showing configuration');
       }
@@ -56,12 +56,12 @@ export function createConfigCommand(): Command {
       try {
         const configManager = ConfigManager.getInstance();
         const updates: Record<string, any> = {};
-        
+
         if (options.outputDir) {
           updates.outputDir = options.outputDir;
           console.log(`📁 Output directory set to: ${options.outputDir}`);
         }
-        
+
         if (options.maxConcurrent) {
           const concurrent = parseInt(options.maxConcurrent);
           if (isNaN(concurrent) || concurrent < 1) {
@@ -71,13 +71,13 @@ export function createConfigCommand(): Command {
           updates.maxConcurrent = concurrent;
           console.log(`🔄 Max concurrent downloads set to: ${concurrent}`);
         }
-        
+
         if (options.overwrite !== undefined) {
           const overwrite = options.overwrite === 'true';
           updates.overwrite = overwrite;
           console.log(`⚠️  Overwrite mode set to: ${overwrite}`);
         }
-        
+
         if (options.logLevel) {
           const validLevels = ['error', 'warn', 'info', 'debug', 'trace'];
           if (!validLevels.includes(options.logLevel)) {
@@ -87,22 +87,22 @@ export function createConfigCommand(): Command {
           updates.logLevel = options.logLevel;
           console.log(`📝 Log level set to: ${options.logLevel}`);
         }
-        
+
         if (options.debug !== undefined) {
           const debug = options.debug === 'true';
           updates.debug = debug;
           console.log(`🔧 Debug mode set to: ${debug}`);
         }
-        
+
         if (Object.keys(updates).length === 0) {
           console.log('❌ No configuration options provided');
           console.log('💡 Use --help to see available options');
           process.exit(1);
         }
-        
+
         configManager.updateConfig(updates);
         console.log('\n✅ Configuration updated successfully!');
-        
+
       } catch (error) {
         handleError(error, 'setting configuration');
       }
@@ -120,13 +120,13 @@ export function createConfigCommand(): Command {
           console.log('💡 Use --confirm to skip this prompt');
           return;
         }
-        
+
         const configManager = ConfigManager.getInstance();
         configManager.resetToDefaults();
-        
+
         console.log('🔄 Configuration reset to defaults');
         console.log('✅ All settings restored to initial values');
-        
+
       } catch (error) {
         handleError(error, 'resetting configuration');
       }
