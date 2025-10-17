@@ -1,6 +1,6 @@
 # Sora Downloader
 
-A powerful TypeScript CLI tool for downloading Sora videos with metadata from OpenAI's Sora feed. Features organized commands, comprehensive cookie management, and flexible download options.
+A powerful TypeScript CLI tool for downloading Sora videos with metadata from OpenAI's Sora feed. Features organized commands, feed monitoring, data visualization, and flexible download options.
 
 [![npm version](https://badge.fury.io/js/sora-dl.svg)](https://badge.fury.io/js/sora-dl)
 [![npm downloads](https://img.shields.io/npm/dm/sora-dl.svg)](https://www.npmjs.com/package/sora-dl)
@@ -43,15 +43,14 @@ sora-dl download url --url "https://videos.openai.com/..." --title "my_video"
 ### Option 2: Download from Live Feed (Cookies Required)
 
 ```bash
-# 1. Get cookies first
-sora-dl cookies import chrome --save
+# 1. Get cookies from browser (see Authentication Setup below)
 
 # 2. Fetch and view raw feed data
-sora-dl feed
+sora-dl feed --cookies "your-cookie-string"
 
 # 3. Download videos
-sora-dl download feed --count 5
-sora-dl download feed --all
+sora-dl download feed --cookies "your-cookie-string" --count 5
+sora-dl download feed --cookies "your-cookie-string" --all
 ```
 
 **Note:** Commands that access the live Sora feed (`feed`, `download feed`) require authentication cookies to be provided via the `--cookies` option. Commands that work with local files (`download local`, `download url`) don't need cookies.
@@ -64,6 +63,8 @@ sora-dl download feed --all
 - 🔧 **Debug Support** - Comprehensive logging and troubleshooting
 - 📊 **Progress Tracking** - Visual progress bars and batch operations
 - 🛡️ **Error Handling** - Robust retry mechanisms and validation
+- 📈 **Feed Monitoring** - Track feed changes over time with detailed analytics
+- 📉 **Data Visualization** - Generate ASCII charts, tables, and interactive HTML charts
 
 ## Command Structure
 
@@ -85,11 +86,28 @@ sora-dl
 ## Commands
 
 ### `feed` - Fetch Raw Feed Data
+
 ```bash
 sora-dl feed [options]
 ```
+
+#### Basic Feed Operations
+
 - `-o, --output <file>` - Save raw feed JSON to file
 - `--pretty` - Pretty print JSON output (default: true)
+- `-c, --cookies <cookies>` - Authentication cookies for live feed access
+
+#### Monitor Feed Changes
+
+- `--monitor` - Monitor feed changes over time
+- `--iterations <number>` - Number of monitoring iterations (default: "10")
+- `--interval <seconds>` - Interval between fetches in seconds (default: "10")
+
+#### Generate Charts
+
+- `--chart` - Generate charts from monitoring data
+- `--report <path>` - Path to comparison report JSON file (default: ./feed-monitor-results/comparison-report.json)
+- `--chart-output <path>` - Output directory for chart files (default: ./feed-monitor-results)
 
 ### `download` - Download Videos
 
@@ -97,11 +115,12 @@ sora-dl feed [options]
 ```bash
 sora-dl download feed [options]
 ```
-- `-n, --count <number>` - Number to download (default: 10)
+- `-c, --cookies <cookies>` - Cookies string for authentication
+- `-n, --count <number>` - Number to download (default: "10")
 - `--all` - Download everything
 - `-o, --output-dir <dir>` - Output folder (default: ./downloads)
 - `--overwrite` - Replace existing files
-- `--concurrent <number>` - Parallel downloads (default: 3)
+- `--concurrent <number>` - Parallel downloads (default: "3")
 - `--verbose` - Show detailed progress
 - `--debug` - Enable debug logging
 - `--log-to-file` - Save logs to file
@@ -111,7 +130,15 @@ sora-dl download feed [options]
 ```bash
 sora-dl download local <feed-file> [options]
 ```
-- Same options as `download feed`
+- `-n, --count <number>` - Number to download (default: "10")
+- `--all` - Download everything
+- `-o, --output-dir <dir>` - Output folder (default: ./downloads)
+- `--overwrite` - Replace existing files
+- `--concurrent <number>` - Parallel downloads (default: "3")
+- `--verbose` - Show detailed progress
+- `--debug` - Enable debug logging
+- `--log-to-file` - Save logs to file
+- `--log-level <level>` - Set log level (error, warn, info, debug, trace)
 - `--list` - Show videos without downloading
 
 #### `download url` - Single Video
@@ -145,7 +172,7 @@ sora-dl config [subcommand]
 All commands support these global options:
 
 - `--debug` - Enable debug logging globally
-- `--log-to-file` - Save logs to file globally  
+- `--log-to-file` - Save logs to file globally
 - `--log-level <level>` - Set log level globally (error, warn, info, debug, trace)
 
 **Note**: Some commands also have their own debug options for convenience, but global options work everywhere.
@@ -172,6 +199,7 @@ To access the live Sora feed, you need to provide authentication cookies:
 
 ## Output Structure
 
+### Download Output
 ```
 downloads/
 ├── videos/
@@ -185,6 +213,22 @@ Each download includes:
 - **Video file** (`.mp4`)
 - **Thumbnail** (`.webp`, if available)  
 - **Metadata** (`.json`) with title, prompt, URLs, timestamps
+
+### Monitoring Output
+```
+feed-monitor-results/
+├── feed-2024-01-15T10-30-00-000Z.json    # Individual feed snapshots
+├── feed-2024-01-15T10-30-10-000Z.json
+├── feed-2024-01-15T10-30-20-000Z.json
+├── comparison-report.json                # Detailed analysis report
+└── feed-chart.html                       # Interactive HTML charts
+```
+
+Monitoring generates:
+- **Individual feed files** (`.json`) - Timestamped snapshots of feed data
+- **Comparison report** (`.json`) - Detailed analysis with statistics and change tracking
+- **Interactive charts** (`.html`) - Web-based charts using Chart.js for visualization
+- **Console output** - ASCII charts and data tables for terminal viewing
 
 ## Examples
 
@@ -227,6 +271,21 @@ sora-dl download local feed.json --all
 sora-dl download url --url "https://..." --title "my_video"
 ```
 
+### Feed Monitoring and Analytics
+```bash
+# Monitor feed changes for 5 iterations every 30 seconds
+sora-dl feed --monitor --iterations 5 --interval 30 --cookies "your-cookie-string"
+
+# Monitor with custom output directory
+sora-dl feed --monitor --iterations 10 --interval 15 --output ./my-monitor-results --cookies "your-cookie-string"
+
+# Generate charts from monitoring data
+sora-dl feed --chart --report ./feed-monitor-results/comparison-report.json
+
+# Generate charts to custom directory
+sora-dl feed --chart --chart-output ./my-charts --report ./feed-monitor-results/comparison-report.json
+```
+
 ### Debug and Troubleshooting
 ```bash
 # Global debug options (work with any command)
@@ -249,6 +308,8 @@ sora-dl --debug config show
 - **"Feed file not found"** → Check file path exists
 - **"API request failed"** → Cookies may be expired, try with fresh cookies
 - **Network errors** → Built-in retry handles temporary failures
+- **"Report file not found"** → Run monitoring first to generate comparison report
+- **"No iteration data found"** → Ensure monitoring completed successfully
 
 ### Debug Commands
 ```bash
@@ -261,6 +322,12 @@ sora-dl --log-level debug download feed --cookies "your-cookie-string" --count 1
 
 # Use command-specific debug options (where available)
 sora-dl download feed --cookies "your-cookie-string" --debug --verbose --count 1
+
+# Monitor with debug output
+sora-dl --debug feed --monitor --iterations 3 --interval 5 --cookies "your-cookie-string"
+
+# Generate charts with debug output
+sora-dl --debug feed --chart --report ./feed-monitor-results/comparison-report.json
 ```
 
 ### Getting Help
@@ -284,15 +351,21 @@ sora-dl config --help
 - **Logger** - Structured logging with multiple levels and file output
 
 ### Command Handlers
-- **feed-handler.ts** - Raw feed data fetching and display
+- **feed-handler.ts** - Raw feed data fetching, monitoring, and chart generation
 - **download-handler.ts** - Video download operations (feed, url, local)
 - **cookie-handler.ts** - Authentication management and validation
 - **config-handler.ts** - Configuration viewing and modification
+
+### Monitoring Utilities
+- **feed-monitor.ts** - Feed monitoring functionality with comparison analysis
+- **feed-chart.ts** - Chart generation (ASCII, tables, and HTML visualizations)
 
 ### Common Options
 - **Debug Options** - `--debug`, `--log-to-file`, `--log-level`
 - **Download Options** - `--output-dir`, `--overwrite`, `--concurrent`
 - **Output Options** - `--output`, `--pretty` for data display
+- **Monitor Options** - `--monitor`, `--iterations`, `--interval` for feed monitoring
+- **Chart Options** - `--chart`, `--report`, `--chart-output` for data visualization
 
 ## Development
 

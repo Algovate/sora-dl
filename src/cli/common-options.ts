@@ -48,6 +48,18 @@ export const COMMON_COUNT_OPTIONS = [
   ['--all', 'Process all available items', false]
 ] as const;
 
+export const COMMON_MONITOR_OPTIONS = [
+  ['--monitor', 'Monitor feed changes over time', false],
+  ['--iterations <number>', 'Number of monitoring iterations', '10'],
+  ['--interval <seconds>', 'Interval between fetches in seconds', '10']
+] as const;
+
+export const COMMON_CHART_OPTIONS = [
+  ['--chart', 'Generate charts from monitoring data', false],
+  ['--report <path>', 'Path to comparison report JSON file', './feed-monitor-results/comparison-report.json'],
+  ['--chart-output <path>', 'Output directory for chart files', './feed-monitor-results']
+] as const;
+
 
 // Helper functions to add common options to commands
 export function addDebugOptions(command: Command): Command {
@@ -85,6 +97,20 @@ export function addCountOptions(command: Command): Command {
   return command;
 }
 
+export function addMonitorOptions(command: Command): Command {
+  COMMON_MONITOR_OPTIONS.forEach(([option, description, defaultValue]) => {
+    command.option(option, description, defaultValue);
+  });
+  return command;
+}
+
+export function addChartOptions(command: Command): Command {
+  COMMON_CHART_OPTIONS.forEach(([option, description, defaultValue]) => {
+    command.option(option, description, defaultValue);
+  });
+  return command;
+}
+
 
 // Combined option sets for common use cases
 export function addCommonOptions(command: Command): Command {
@@ -98,7 +124,7 @@ export function addDownloadCommonOptions(command: Command): Command {
 export function addFeedOptions(command: Command): Command {
   command
     .option('-c, --cookies <cookies>', 'Cookies string for authentication');
-  return addOutputOptions(command);
+  return addMonitorOptions(addChartOptions(addOutputOptions(command)));
 }
 
 export function addDownloadFeedOptions(command: Command): Command {
