@@ -1,5 +1,7 @@
 const path = require('path');
 const nodeExternals = require('webpack-node-externals');
+const webpack = require('webpack');
+const packageJson = require('./package.json');
 
 module.exports = {
   mode: 'production',
@@ -49,6 +51,16 @@ module.exports = {
     }
   },
   devtool: 'source-map',
+  plugins: [
+    new webpack.BannerPlugin({
+      banner: '#!/usr/bin/env node',
+      raw: true,
+      include: /cli\.js$/
+    }),
+    new webpack.DefinePlugin({
+      'process.env.PACKAGE_VERSION': JSON.stringify(packageJson.version)
+    })
+  ],
   stats: {
     colors: true,
     modules: false,

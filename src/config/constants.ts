@@ -1,7 +1,7 @@
 // Application constants and configuration
 export const APP_CONFIG = {
   NAME: 'sora-dl',
-  VERSION: '1.0.0',
+  VERSION: process.env.PACKAGE_VERSION || '1.2.1',
   DESCRIPTION: 'A TypeScript video downloader for Sora feed',
   DEFAULT_OUTPUT_DIR: './downloads',
   DEFAULT_CONCURRENT_DOWNLOADS: 3,
