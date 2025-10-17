@@ -1,5 +1,5 @@
 import { log } from '../logger';
-import { ERROR_MESSAGES } from '../config/constants';
+// import { ERROR_MESSAGES } from '../config/constants'; // TODO: Use this constant
 
 export class AppError extends Error {
   public readonly code: string;

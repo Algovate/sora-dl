@@ -149,11 +149,11 @@ export class FeedChartGenerator {
       const changeStr = change > 0 ? `+${change}` : change.toString();
 
       console.log(
-        `${index + 1}`.padStart(4) + ' | ' +
-        time.padEnd(23) + ' | ' +
-        `${iter.itemCount}`.padStart(5) + ' | ' +
-        `${iter.videoCount}`.padStart(6) + ' | ' +
-        changeStr.padStart(6)
+        `${`${index + 1}`.padStart(4)  } | ${ 
+        time.padEnd(23)  } | ${ 
+        `${iter.itemCount}`.padStart(5)  } | ${ 
+        `${iter.videoCount}`.padStart(6)  } | ${ 
+        changeStr.padStart(6)}`
       );
     });
 

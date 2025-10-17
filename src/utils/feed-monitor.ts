@@ -98,7 +98,7 @@ export class FeedMonitor {
     }
 
     try {
-      const { stdout, stderr } = await execAsync(fullCommand, {
+      const { stderr } = await execAsync(fullCommand, {
         cwd: process.cwd(),
         maxBuffer: 1024 * 1024 * 50 // 50MB buffer to handle large feed outputs
       });
@@ -119,7 +119,7 @@ export class FeedMonitor {
 
       this.feedFiles.push({
         file: outputFile,
-        timestamp: timestamp,
+        timestamp,
         iteration: this.currentIteration + 1,
         data: feedData
       });
@@ -207,7 +207,7 @@ export class FeedMonitor {
         if (!previousIds.has(item.post?.id)) {
           comparison.changes.newItems.push({
             id: item.post?.id,
-            text: item.post?.text?.substring(0, 100) + '...',
+            text: `${item.post?.text?.substring(0, 100)  }...`,
             posted_at: item.post?.posted_at
           });
         }
@@ -218,7 +218,7 @@ export class FeedMonitor {
         if (!currentIds.has(item.post?.id)) {
           comparison.changes.removedItems.push({
             id: item.post?.id,
-            text: item.post?.text?.substring(0, 100) + '...',
+            text: `${item.post?.text?.substring(0, 100)  }...`,
             posted_at: item.post?.posted_at
           });
         }
@@ -282,7 +282,7 @@ export class FeedMonitor {
     const report = {
       summary: {
         totalIterations: this.iterations,
-        totalDuration: totalDuration,
+        totalDuration,
         averageInterval: totalDuration / this.iterations,
         startTime: new Date(this.startTime).toISOString(),
         endTime: new Date().toISOString()
@@ -295,7 +295,7 @@ export class FeedMonitor {
           item.post?.attachments?.some((att: any) => att.kind === 'sora')
         ).length
       })),
-      comparisons: comparisons,
+      comparisons,
       statistics: {
         totalNewItems: comparisons.reduce((sum, comp) => sum + comp.changes.newItems.length, 0),
         totalRemovedItems: comparisons.reduce((sum, comp) => sum + comp.changes.removedItems.length, 0),
@@ -320,7 +320,7 @@ export class FeedMonitor {
    * Print human-readable summary
    */
   private printSummaryReport(report: any): void {
-    console.log('\n' + '='.repeat(60));
+    console.log(`\n${  '='.repeat(60)}`);
     console.log('📊 FEED MONITOR SUMMARY REPORT');
     console.log('='.repeat(60));
 
@@ -360,6 +360,6 @@ export class FeedMonitor {
       });
     }
 
-    console.log('\n' + '='.repeat(60));
+    console.log(`\n${  '='.repeat(60)}`);
   }
 }
