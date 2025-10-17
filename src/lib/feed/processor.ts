@@ -1,8 +1,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import axios from 'axios';
-import { SoraFeedResponse, SoraPost, VideoMetadata, VideoItem } from './types';
-import { VideoDownloader } from './downloader';
+import { SoraFeedResponse, SoraPost, VideoMetadata, VideoItem } from '../../types';
+import { VideoDownloader } from '../download';
 
 export class LocalFeedProcessor {
   private feedData: SoraFeedResponse;

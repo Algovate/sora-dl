@@ -1,5 +1,5 @@
-import { log } from '../logger';
-import { APP_CONFIG } from '../config/constants';
+import { log } from '../../logger';
+import { APP_CONFIG } from '../../config/constants';
 import { isRetriableError, handleError } from './error-handler';
 
 export interface RetryOptions {

@@ -1,16 +1,16 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import axios from 'axios';
-import { VideoItem, DownloadOptions } from './types';
-import { log } from './logger';
-import { APP_CONFIG, FILE_CONFIG } from './config/constants';
-import { withRetry } from './utils/retry';
-import { FileUtils } from './utils/file-utils';
-import { FormatUtils } from './utils/format-utils';
-import { createFileSystemError, createNetworkError } from './utils/error-handler';
-import { BaseService } from './core/base-service';
-import { ProgressManager, BatchProgressManager } from './core/progress-manager';
-import { ValidationUtils } from './utils/validation';
+import { VideoItem, DownloadOptions } from '../../types';
+import { log } from '../../logger';
+import { APP_CONFIG, FILE_CONFIG } from '../../config/constants';
+import { withRetry } from '../../utils/common/retry';
+import { FileUtils } from '../../utils/common/file-utils';
+import { FormatUtils } from '../../utils/formatting';
+import { createFileSystemError, createNetworkError } from '../../utils/common/error-handler';
+import { BaseService } from '../services/base-service';
+import { ProgressManager, BatchProgressManager } from '../services/progress-manager';
+import { ValidationUtils } from '../../utils/validation';
 
 export class VideoDownloader extends BaseService {
   private outputDir: string;

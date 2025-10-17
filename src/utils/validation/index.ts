@@ -1,5 +1,5 @@
-import { createValidationError } from './error-handler';
-import { TypeGuards } from './type-guards';
+import { createValidationError } from '../common/error-handler';
+import { TypeGuards } from '../common/type-guards';
 
 export class ValidationUtils {
   static validateRequired(value: any, fieldName: string): void {

@@ -1,6 +1,6 @@
-import { log } from '../logger';
-import { withRetry, RetryOptions } from '../utils/retry';
-import { handleError } from '../utils/error-handler';
+import { log } from '../../logger';
+import { withRetry, RetryOptions } from '../../utils/common/retry';
+import { handleError } from '../../utils/common/error-handler';
 
 export abstract class BaseService {
   protected serviceName: string;

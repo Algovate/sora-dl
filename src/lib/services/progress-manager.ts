@@ -1,5 +1,5 @@
 import ProgressBar from 'progress';
-import { log } from '../logger';
+import { log } from '../../logger';
 
 export interface ProgressOptions {
   total: number;

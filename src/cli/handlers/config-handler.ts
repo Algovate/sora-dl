@@ -1,6 +1,6 @@
 import { Command } from 'commander';
-import { ConfigManager } from '../../core/config-manager';
-import { handleError } from '../../utils/error-handler';
+import { ConfigManager } from '../../lib/services/config-manager';
+import { handleError } from '../../utils/common/error-handler';
 import { setupLogging } from '../logging-setup';
 import { addConfigOptions } from '../common-options';
 

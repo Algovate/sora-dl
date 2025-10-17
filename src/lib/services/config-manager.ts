@@ -1,10 +1,10 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-import { log } from '../logger';
-import { ValidationUtils } from '../utils/validation';
-import { createFileSystemError } from '../utils/error-handler';
-import { APP_CONFIG } from '../config/constants';
+import { log } from '../../logger';
+import { ValidationUtils } from '../../utils/validation';
+import { createFileSystemError } from '../../utils/common/error-handler';
+import { APP_CONFIG } from '../../config/constants';
 
 export interface AppConfig {
   outputDir: string;

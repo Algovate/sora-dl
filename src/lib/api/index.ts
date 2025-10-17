@@ -1,11 +1,11 @@
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
-import { FeedResponse, VideoItem, SoraFeedResponse, SoraAttachment, SoraPost } from './types';
-import { log } from './logger';
-import { API_CONFIG } from './config/constants';
-import { withRetry } from './utils/retry';
-import { createAPIError } from './utils/error-handler';
-import { BaseService } from './core/base-service';
-import { ValidationUtils } from './utils/validation';
+import { FeedResponse, VideoItem, SoraFeedResponse, SoraAttachment, SoraPost } from '../../types';
+import { log } from '../../logger';
+import { API_CONFIG } from '../../config/constants';
+import { withRetry } from '../../utils/common/retry';
+import { createAPIError } from '../../utils/common/error-handler';
+import { BaseService } from '../services/base-service';
+import { ValidationUtils } from '../../utils/validation';
 
 export class SoraAPI extends BaseService {
   private client: AxiosInstance;

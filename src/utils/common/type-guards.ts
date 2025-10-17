@@ -1,4 +1,4 @@
-import { VideoItem, SoraFeedResponse, SoraPost, SoraAttachment } from '../types';
+import { VideoItem, SoraFeedResponse, SoraPost, SoraAttachment } from '../../types';
 
 export class TypeGuards {
   static isVideoItem(obj: any): obj is VideoItem {

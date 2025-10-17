@@ -1,9 +1,9 @@
-import { SoraAPI } from './api';
-import { VideoDownloader } from './downloader';
+import { SoraAPI } from './lib/api';
+import { VideoDownloader } from './lib/download';
 import { VideoItem, DownloadOptions } from './types';
 import { log } from './logger';
-import { BaseService } from './core/base-service';
-import { ConfigManager } from './core/config-manager';
+import { BaseService } from './lib/services/base-service';
+import { ConfigManager } from './lib/services/config-manager';
 import { ValidationUtils } from './utils/validation';
 
 export class SoraVideoDownloader extends BaseService {
@@ -116,3 +116,4 @@ export class SoraVideoDownloader extends BaseService {
 
 export { SoraAPI, VideoDownloader };
 export * from './types';
+export * from './lib';

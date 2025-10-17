@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { log } from '../logger';
-import { FILE_CONFIG } from '../config/constants';
+import { log } from '../../logger';
+import { FILE_CONFIG } from '../../config/constants';
 import { createFileSystemError } from './error-handler';
 
 export class FileUtils {

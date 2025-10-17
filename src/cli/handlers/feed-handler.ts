@@ -1,11 +1,11 @@
 import { Command } from 'commander';
 import * as fs from 'fs';
 import * as path from 'path';
-import { SoraAPI } from '../../api';
-import { handleError } from '../../utils/error-handler';
+import { SoraAPI } from '../../lib/api';
+import { handleError } from '../../utils/common/error-handler';
 import { addFeedOptions } from '../common-options';
-import { FeedMonitor } from '../../utils/feed-monitor';
-import { FeedChartGenerator } from '../../utils/feed-chart';
+import { FeedMonitor } from '../../utils/monitoring/monitor';
+import { FeedChartGenerator } from '../../utils/monitoring/chart';
 
 export function createFeedCommand(): Command {
   const command = new Command('feed')
