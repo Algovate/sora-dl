@@ -1,6 +1,6 @@
 # Sora Downloader
 
-Download Sora videos with metadata from OpenAI's Sora feed.
+A powerful TypeScript CLI tool for downloading Sora videos with metadata from OpenAI's Sora feed. Features organized commands, comprehensive cookie management, and flexible download options.
 
 [![npm version](https://badge.fury.io/js/sora-dl.svg)](https://badge.fury.io/js/sora-dl)
 [![npm downloads](https://img.shields.io/npm/dm/sora-dl.svg)](https://www.npmjs.com/package/sora-dl)
@@ -44,9 +44,9 @@ sora-dl download url --url "https://videos.openai.com/..." --title "my_video"
 
 ```bash
 # 1. Get cookies first
-sora-dl cookies extract --save
+sora-dl cookies import chrome --save
 
-# 2. List available videos
+# 2. Fetch and view raw feed data
 sora-dl feed
 
 # 3. Download videos
@@ -54,17 +54,42 @@ sora-dl download feed --count 5
 sora-dl download feed --all
 ```
 
-**Note:** Commands that access the live Sora feed (`feed`, `download feed`) require authentication cookies. Commands that work with local files (`download local`, `download url`) don't need cookies.
+**Note:** Commands that access the live Sora feed (`feed`, `download feed`) require authentication cookies to be provided via the `--cookies` option. Commands that work with local files (`download local`, `download url`) don't need cookies.
+
+## Features
+
+- 🎯 **Organized Commands** - Logical grouping of related functionality
+- 📁 **Flexible Downloads** - Remote feed, local files, or single URLs
+- ⚙️ **Configuration Management** - Persistent settings and preferences
+- 🔧 **Debug Support** - Comprehensive logging and troubleshooting
+- 📊 **Progress Tracking** - Visual progress bars and batch operations
+- 🛡️ **Error Handling** - Robust retry mechanisms and validation
+
+## Command Structure
+
+The CLI is organized into logical command groups:
+
+```
+sora-dl
+├── feed                    # Fetch raw feed data
+├── download                # Download videos
+│   ├── feed               # From remote feed
+│   ├── url                # From specific URL
+│   └── local              # From local feed file
+└── config                 # Configuration management
+    ├── show               # Show current config
+    ├── set                # Set config values
+    └── reset              # Reset to defaults
+```
 
 ## Commands
 
-### `feed` - List Videos
+### `feed` - Fetch Raw Feed Data
 ```bash
 sora-dl feed [options]
 ```
-- `-c, --cookies <cookies>` - Authentication cookies
-- `-o, --output <file>` - Save feed to file
-- `--raw <file>` - Save raw API response
+- `-o, --output <file>` - Save raw feed JSON to file
+- `--pretty` - Pretty print JSON output (default: true)
 
 ### `download` - Download Videos
 
@@ -77,6 +102,10 @@ sora-dl download feed [options]
 - `-o, --output-dir <dir>` - Output folder (default: ./downloads)
 - `--overwrite` - Replace existing files
 - `--concurrent <number>` - Parallel downloads (default: 3)
+- `--verbose` - Show detailed progress
+- `--debug` - Enable debug logging
+- `--log-to-file` - Save logs to file
+- `--log-level <level>` - Set log level (error, warn, info, debug, trace)
 
 #### `download local` - From Local File
 ```bash
@@ -93,20 +122,45 @@ sora-dl download url --url <video-url> [options]
 - `-o, --output-dir <dir>` - Output folder
 - `--overwrite` - Replace existing files
 
-### `cookies` - Manage Authentication
+
+### `config` - Configuration Management
 
 ```bash
-sora-dl cookies [subcommand]
+sora-dl config [subcommand]
 ```
 
 #### Subcommands:
-- `extract` - Auto-extract from browser
-- `import <browser>` - Import from browser files
-- `save <cookies>` - Save manually
-- `validate` - Test saved cookies
-- `show` - View saved cookies
+- `show` - Display current configuration
+- `set` - Set configuration values
+  - `--output-dir <dir>` - Set default output directory
+  - `--max-concurrent <number>` - Set max concurrent downloads
+  - `--overwrite <boolean>` - Set overwrite mode
+  - `--log-level <level>` - Set default log level
+  - `--debug <boolean>` - Set debug mode
+- `reset` - Reset to default values
+  - `--confirm` - Skip confirmation prompt
 
-## Manual Cookie Setup
+## Global Options
+
+All commands support these global options:
+
+- `--debug` - Enable debug logging globally
+- `--log-to-file` - Save logs to file globally  
+- `--log-level <level>` - Set log level globally (error, warn, info, debug, trace)
+
+**Note**: Some commands also have their own debug options for convenience, but global options work everywhere.
+
+### Debug Options Strategy
+
+- **Global Options**: Work with any command (`--debug`, `--log-to-file`, `--log-level`)
+- **Command-Specific Options**: Available only for complex operations that benefit from detailed logging
+  - `download feed` and `download local` have full debug options
+  - Simple commands like `config`, `feed`, `download url` use global options only
+- **Clean Interface**: Commands show only relevant options, reducing confusion
+
+## Authentication Setup
+
+To access the live Sora feed, you need to provide authentication cookies:
 
 1. Open https://sora.chatgpt.com/ in browser
 2. Open Developer Tools (F12)
@@ -114,7 +168,7 @@ sora-dl cookies [subcommand]
 4. Refresh page
 5. Find request to `backend/public/nf2/feed`
 6. Copy Cookie header value
-7. Run: `sora-dl cookies save "cookie_value"`
+7. Use with commands: `sora-dl feed --cookies "your-cookie-string"`
 
 ## Output Structure
 
@@ -134,26 +188,128 @@ Each download includes:
 
 ## Examples
 
+### Basic Workflow
 ```bash
-# Download workflow
-sora-dl cookies extract --save          # Setup once
-sora-dl feed                            # See what's available
-sora-dl download feed --count 3         # Download 3 videos
+# View available videos (requires cookies)
+sora-dl feed --cookies "your-cookie-string"
 
-# Batch processing
-sora-dl feed --raw feed.json            # Save raw feed
-sora-dl download local feed.json --all  # Process offline
+# Download videos (requires cookies)
+sora-dl download feed --cookies "your-cookie-string" --count 3
+sora-dl download feed --cookies "your-cookie-string" --all
+```
 
-# Single video
+### Configuration Management
+```bash
+# View current settings
+sora-dl config show
+
+# Set custom defaults
+sora-dl config set --output-dir ./my-downloads
+sora-dl config set --max-concurrent 5
+sora-dl config set --debug true
+
+# Reset to defaults
+sora-dl config reset --confirm
+```
+
+### Batch Processing
+```bash
+# Save raw feed for offline processing
+sora-dl feed -o feed.json
+
+# Process offline
+sora-dl download local feed.json --all
+```
+
+### Single Video Download
+```bash
+# Download specific video
 sora-dl download url --url "https://..." --title "my_video"
+```
+
+### Debug and Troubleshooting
+```bash
+# Global debug options (work with any command)
+sora-dl --debug feed --cookies "your-cookie-string"
+sora-dl --log-level debug config show
+sora-dl --log-to-file download feed --cookies "your-cookie-string" --count 1
+
+# Command-specific debug options (where available)
+sora-dl download feed --cookies "your-cookie-string" --debug --verbose --count 1
+sora-dl download local feed.json --debug --all
+
+# Simple commands (use global options)
+sora-dl --debug config show
 ```
 
 ## Troubleshooting
 
-- **"No cookies provided"** → Run `sora-dl cookies` for setup help
+### Common Issues
+- **"No cookies provided"** → Use `--cookies` option with authentication string
 - **"Feed file not found"** → Check file path exists
-- **"API request failed"** → Cookies may be expired, try `sora-dl cookies validate`
+- **"API request failed"** → Cookies may be expired, try with fresh cookies
 - **Network errors** → Built-in retry handles temporary failures
+
+### Debug Commands
+```bash
+# View current configuration
+sora-dl config show
+
+# Enable debug logging (global options work everywhere)
+sora-dl --debug --log-to-file feed --cookies "your-cookie-string"
+sora-dl --log-level debug download feed --cookies "your-cookie-string" --count 1
+
+# Use command-specific debug options (where available)
+sora-dl download feed --cookies "your-cookie-string" --debug --verbose --count 1
+```
+
+### Getting Help
+```bash
+# General help
+sora-dl --help
+
+# Command-specific help
+sora-dl feed --help
+sora-dl download --help
+sora-dl config --help
+```
+
+## Architecture
+
+### Core Components
+- **BaseService** - Common patterns for logging, error handling, and retry mechanisms
+- **ConfigManager** - Centralized configuration management with validation
+- **ProgressManager** - Visual progress tracking for downloads and batch operations
+- **ValidationUtils** - Type-safe input validation and type guards
+- **Logger** - Structured logging with multiple levels and file output
+
+### Command Handlers
+- **feed-handler.ts** - Raw feed data fetching and display
+- **download-handler.ts** - Video download operations (feed, url, local)
+- **cookie-handler.ts** - Authentication management and validation
+- **config-handler.ts** - Configuration viewing and modification
+
+### Common Options
+- **Debug Options** - `--debug`, `--log-to-file`, `--log-level`
+- **Download Options** - `--output-dir`, `--overwrite`, `--concurrent`
+- **Output Options** - `--output`, `--pretty` for data display
+
+## Development
+
+### Building
+```bash
+npm run build
+```
+
+### Testing
+```bash
+npm test
+```
+
+### Development Mode
+```bash
+npm run dev
+```
 
 ## License
 
