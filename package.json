@@ -1,6 +1,6 @@
 {
   "name": "sora-dl",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "A powerful Sora video downloader with metadata extraction",
   "main": "dist/index.js",
   "bin": {
