@@ -56,7 +56,7 @@ export const COMMON_MONITOR_OPTIONS = [
 
 export const COMMON_CHART_OPTIONS = [
   ['--chart', 'Generate charts from monitoring data', false],
-  ['--report <path>', 'Path to comparison report JSON file', './feed-monitor-results/comparison-report.json'],
+  ['--data-dir <path>', 'Directory containing feed-*.json files', './feed-monitor-results'],
   ['--chart-output <path>', 'Output directory for chart files', './feed-monitor-results']
 ] as const;
 

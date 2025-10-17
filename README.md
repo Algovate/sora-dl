@@ -38,14 +38,27 @@ sora-dl download feed --cookies "your-cookie-string" --count 5
 - `--count <number>` - Number of videos to download (default: 10)
 - `--all` - Download all available videos
 - `--output-dir <dir>` - Output directory (default: ./downloads)
+- `--chart` - Generate analytics charts from monitoring data
+- `--data-dir <dir>` - Directory containing feed-*.json files (default: ./feed-monitor-results)
+- `--chart-output <dir>` - Output directory for chart files (default: ./feed-monitor-results)
 - `--debug` - Enable debug logging
 
 ## Output
 
 Downloads include:
+
 - Video file (`.mp4`)
 - Thumbnail (`.webp`, if available) 
 - Metadata (`.json`) with title, prompt, URLs, timestamps
+
+## Analytics
+
+The `--chart` option generates interactive HTML charts showing:
+
+- **Sora Videos**: Count of Sora videos per timestamp
+- **Cumulative Unique Videos**: Running total of unique video IDs over time
+
+Charts are generated as `feed-charts.html` with UTC+8 timezone labels and can be viewed in any web browser.
 
 ## Examples
 
@@ -61,6 +74,9 @@ sora-dl download url --url "https://..." --title "my_video"
 
 # Monitor feed changes
 sora-dl feed --monitor --cookies "your-cookie-string"
+
+# Generate analytics charts
+sora-dl feed --chart --data-dir ./feed-monitor-results --chart-output ./charts
 
 # Configuration
 sora-dl config show

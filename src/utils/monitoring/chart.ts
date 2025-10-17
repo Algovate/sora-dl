@@ -1,297 +1,224 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import { glob } from 'glob';
 
-export interface FeedChartGeneratorOptions {
-  reportPath: string;
-  outputDir?: string;
+interface FeedDataItem {
+  post?: {
+    like_count?: number;
+    view_count?: number;
+    reply_count?: number;
+    remix_count?: number;
+    attachments?: Array<{ kind?: string; id?: string }>
+  };
+  profile?: { user_id?: string };
+}
+
+interface FeedDataFile {
+  items?: FeedDataItem[];
+}
+
+interface ChartDataPoint {
+  timestamp: Date;
+  postCount: number;
+  totalLikes: number;
+  totalViews: number;
+  totalReplies: number;
+  totalRemixes: number;
+  uniqueUsers: number;
+  soraVideos: number;
+  uniqueVideos: number;
 }
 
 export class FeedChartGenerator {
-  private reportPath: string;
-  private reportData: any;
+  private dataDir: string;
   private outputDir: string;
 
-  constructor(reportPath: string, outputDir = './feed-monitor-results') {
-    this.reportPath = reportPath;
-    this.reportData = null;
+  constructor(dataDir = './feed-monitor-results', outputDir = './feed-monitor-results') {
+    this.dataDir = dataDir;
     this.outputDir = outputDir;
   }
 
-  /**
-   * Load and parse the comparison report
-   */
-  loadReport(): boolean {
+  async loadFeedData(): Promise<ChartDataPoint[]> {
+    const pattern = path.join(this.dataDir, 'feed-*.json');
+    const files = await glob(pattern);
+
+    const dataPoints: ChartDataPoint[] = [];
+    const seenVideoIds = new Set<string>();
+
+    for (const filePath of files.sort()) {
+      try {
+        const content = fs.readFileSync(filePath, 'utf-8');
+        const data: FeedDataFile = JSON.parse(content);
+
+        const filename = path.basename(filePath);
+        const timestamp = this.parseTimestamp(filename);
+        if (!timestamp) {
+          continue;
+        }
+
+        const items = data.items || [];
+        const postCount = items.length;
+        const totalLikes = items.reduce((sum, item) => sum + (item.post?.like_count || 0), 0);
+        const totalViews = items.reduce((sum, item) => sum + (item.post?.view_count || 0), 0);
+        const totalReplies = items.reduce((sum, item) => sum + (item.post?.reply_count || 0), 0);
+        const totalRemixes = items.reduce((sum, item) => sum + (item.post?.remix_count || 0), 0);
+        const uniqueUsers = new Set(items.map(i => i.profile?.user_id)).size;
+        const soraVideos = items.reduce((count, item) => count + ((item.post?.attachments || []).filter(att => att.kind === 'sora').length), 0);
+        
+        // Update cumulative unique videos by extracting video IDs from attachments
+        items.forEach(item => {
+          (item.post?.attachments || []).forEach(att => {
+            if (att.kind === 'sora' && att.id) {
+              seenVideoIds.add(att.id);
+            }
+          });
+        });
+        const uniqueVideos = seenVideoIds.size;
+
+        dataPoints.push({
+          timestamp,
+          postCount,
+          totalLikes,
+          totalViews,
+          totalReplies,
+          totalRemixes,
+          uniqueUsers,
+          soraVideos,
+          uniqueVideos
+        });
+      } catch {
+        // skip invalid file
+      }
+    }
+
+    return dataPoints.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+  }
+
+  private parseTimestamp(filename: string): Date | null {
     try {
-      if (!fs.existsSync(this.reportPath)) {
-        throw new Error(`Report file not found: ${this.reportPath}`);
+      let timestampStr = filename.replace('feed-', '').replace('.json', '');
+      if (timestampStr.endsWith('Z')) {
+        timestampStr = timestampStr.slice(0, -1);
+        timestampStr = timestampStr.replace('T', ' ');
       }
-
-      const reportContent = fs.readFileSync(this.reportPath, 'utf8');
-      this.reportData = JSON.parse(reportContent);
-
-      console.log('✅ Report loaded successfully');
-      return true;
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error(`❌ Error loading report: ${errorMessage}`);
-      return false;
+      if (timestampStr.includes('-') && !timestampStr.includes('T')) {
+        const parts = timestampStr.split(' ');
+        if (parts.length === 2) {
+          const [datePart, timePart] = parts;
+          const formattedTime = timePart.replace(/-/g, ':');
+          timestampStr = `${datePart} ${formattedTime}`;
+        }
+      }
+      const date = new Date(timestampStr);
+      if (isNaN(date.getTime())) {
+        return null;
+      }
+      return date;
+    } catch {
+      return null;
     }
   }
 
-  /**
-   * Generate ASCII line chart
-   */
-  generateASCIIChart(): void {
-    if (!this.reportData) {
-      console.error('❌ No report data loaded');
-      return;
-    }
-
-    const iterations = this.reportData.iterations || [];
-    if (iterations.length === 0) {
-      console.error('❌ No iteration data found');
-      return;
-    }
-
-    console.log('\n📊 FEED ITEMS OVER TIME - LINE CHART');
-    console.log('='.repeat(60));
-
-    // Find the range of values
-    const itemCounts = iterations.map((iter: any) => iter.itemCount);
-    const maxItems = Math.max(...itemCounts);
-    const minItems = Math.min(...itemCounts);
-    const range = maxItems - minItems;
-
-    // Determine chart dimensions
-    const chartHeight = 20;
-    const chartWidth = Math.min(iterations.length * 3, 80);
-
-    // Create the chart
-    const chart: string[] = [];
-
-    // Add Y-axis labels and data points
-    for (let y = chartHeight; y >= 0; y--) {
-      let line = '';
-
-      // Y-axis label
-      const value = Math.round(minItems + (range * y / chartHeight));
-      const valueStr = value.toString().padStart(4);
-      line += `${valueStr} |`;
-
-      // Data points
-      for (let x = 0; x < iterations.length; x++) {
-        const itemCount = itemCounts[x];
-        const normalizedValue = range === 0 ? 0.5 : (itemCount - minItems) / range;
-        const chartY = Math.round(normalizedValue * chartHeight);
-
-        if (chartY === y) {
-          line += '●'; // Data point
-        } else if (chartY < y) {
-          line += '│'; // Vertical line below point
-        } else {
-          line += ' '; // Empty space
-        }
-
-        if (x < iterations.length - 1) {
-          line += '  '; // Spacing between points
-        }
-      }
-
-      chart.push(line);
-    }
-
-    // Add X-axis
-    let xAxis = '     +';
-    for (let i = 0; i < chartWidth; i++) {
-      xAxis += '-';
-    }
-    chart.push(xAxis);
-
-    // Add X-axis labels (iteration numbers)
-    let xLabels = '      ';
-    for (let i = 0; i < iterations.length; i++) {
-      xLabels += `${i + 1}`.padStart(3);
-    }
-    chart.push(xLabels);
-
-    // Print the chart
-    console.log(chart.join('\n'));
-
-    // Print summary statistics
-    console.log('\n📈 CHART SUMMARY:');
-    console.log(`   • Total iterations: ${iterations.length}`);
-    console.log(`   • Min items: ${minItems}`);
-    console.log(`   • Max items: ${maxItems}`);
-    console.log(`   • Average items: ${(itemCounts.reduce((a: number, b: number) => a + b, 0) / itemCounts.length).toFixed(1)}`);
-    console.log(`   • Range: ${range} items`);
-  }
-
-  /**
-   * Generate detailed data table
-   */
-  generateDataTable(): void {
-    if (!this.reportData) {
-      console.error('❌ No report data loaded');
-      return;
-    }
-
-    const iterations = this.reportData.iterations || [];
-
-    console.log('\n📋 DETAILED DATA TABLE:');
-    console.log('='.repeat(80));
-    console.log('Iter | Time                     | Items | Videos | Change');
-    console.log('-'.repeat(80));
-
-    iterations.forEach((iter: any, index: number) => {
-      const time = new Date(iter.timestamp).toLocaleTimeString();
-      const change = index > 0 ?
-        (iter.itemCount - iterations[index - 1].itemCount) : 0;
-      const changeStr = change > 0 ? `+${change}` : change.toString();
-
-      console.log(
-        `${`${index + 1}`.padStart(4)  } | ${ 
-        time.padEnd(23)  } | ${ 
-        `${iter.itemCount}`.padStart(5)  } | ${ 
-        `${iter.videoCount}`.padStart(6)  } | ${ 
-        changeStr.padStart(6)}`
-      );
+  private generateHTML(dataPoints: ChartDataPoint[]): string {
+    const labels = dataPoints.map(dp => {
+      const utc8Time = new Date(dp.timestamp.getTime() + (8 * 60 * 60 * 1000));
+      return utc8Time.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
     });
 
-    console.log('-'.repeat(80));
-  }
-
-  /**
-   * Generate HTML chart using Chart.js (for web viewing)
-   */
-  generateHTMLChart(outputPath?: string): void {
-    if (!this.reportData) {
-      console.error('❌ No report data loaded');
-      return;
-    }
-
-    const iterations = this.reportData.iterations || [];
-    const labels = iterations.map((iter: any, index: number) => `Iter ${index + 1}`);
-    const itemData = iterations.map((iter: any) => iter.itemCount);
-    const videoData = iterations.map((iter: any) => iter.videoCount);
-
-    const htmlPath = outputPath || path.join(this.outputDir, 'feed-chart.html');
-
     const html = `<!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Feed Monitor Chart</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feed Monitor Charts (UTC+8)</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        .container { max-width: 1200px; margin: 0 auto; }
-        .chart-container { margin: 20px 0; }
-        h1, h2 { color: #333; }
-        .summary { background: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #333; margin-bottom: 30px; }
+        .chart-container { margin: 30px 0; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; background: #fafafa; }
+        .chart-title { font-size: 18px; font-weight: bold; margin-bottom: 15px; color: #555; }
+        canvas { max-height: 400px; }
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 20px 0; }
+        .stat-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px; border-radius: 8px; text-align: center; }
+        .stat-value { font-size: 24px; font-weight: bold; }
+        .stat-label { font-size: 14px; opacity: 0.9; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>📊 Feed Monitor Results</h1>
+        <h1>Feed Monitor Analytics (UTC+8)</h1>
 
-        <div class="summary">
-            <h2>Summary</h2>
-            <p><strong>Total Iterations:</strong> ${iterations.length}</p>
-            <p><strong>Duration:</strong> ${(this.reportData.summary.totalDuration / 1000).toFixed(1)} seconds</p>
-            <p><strong>Average Items:</strong> ${(itemData.reduce((a: number, b: number) => a + b, 0) / itemData.length).toFixed(1)}</p>
-            <p><strong>Min Items:</strong> ${Math.min(...itemData)}</p>
-            <p><strong>Max Items:</strong> ${Math.max(...itemData)}</p>
-        </div>
-
-        <div class="chart-container">
-            <h2>Items Over Time</h2>
-            <canvas id="itemsChart" width="400" height="200"></canvas>
-        </div>
-
-        <div class="chart-container">
-            <h2>Videos Over Time</h2>
-            <canvas id="videosChart" width="400" height="200"></canvas>
-        </div>
-
-        <div class="chart-container">
-            <h2>Combined View</h2>
-            <canvas id="combinedChart" width="400" height="200"></canvas>
-        </div>
+        <div class="chart-container"><div class="chart-title">Sora Videos & Cumulative Unique Videos</div><canvas id="activityChart"></canvas></div>
     </div>
-
     <script>
-        // Items Chart
-        const itemsCtx = document.getElementById('itemsChart').getContext('2d');
-        new Chart(itemsCtx, {
-            type: 'line',
-            data: {
-                labels: ${JSON.stringify(labels)},
-                datasets: [{
-                    label: 'Total Items',
-                    data: ${JSON.stringify(itemData)},
-                    borderColor: 'rgb(75, 192, 192)',
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    tension: 0.1
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
-            }
-        });
+        const labels = ${JSON.stringify(labels)};
+        const dataPoints = ${JSON.stringify(dataPoints)};
 
-        // Videos Chart
-        const videosCtx = document.getElementById('videosChart').getContext('2d');
-        new Chart(videosCtx, {
-            type: 'line',
-            data: {
-                labels: ${JSON.stringify(labels)},
-                datasets: [{
-                    label: 'Video Items',
-                    data: ${JSON.stringify(videoData)},
-                    borderColor: 'rgb(255, 99, 132)',
-                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                    tension: 0.1
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
-            }
-        });
+        const canvas = document.getElementById('activityChart');
+        const ctx = canvas.getContext('2d');
 
-        // Combined Chart
-        const combinedCtx = document.getElementById('combinedChart').getContext('2d');
-        new Chart(combinedCtx, {
+        const gradientVideos = ctx.createLinearGradient(0, 0, 0, 400);
+        gradientVideos.addColorStop(0, 'rgba(108, 92, 231, 0.35)');
+        gradientVideos.addColorStop(1, 'rgba(108, 92, 231, 0.02)');
+
+        const gradientUniqueVideos = ctx.createLinearGradient(0, 0, 0, 400);
+        gradientUniqueVideos.addColorStop(0, 'rgba(46, 204, 113, 0.35)');
+        gradientUniqueVideos.addColorStop(1, 'rgba(46, 204, 113, 0.02)');
+
+        new Chart(canvas, {
             type: 'line',
             data: {
-                labels: ${JSON.stringify(labels)},
-                datasets: [{
-                    label: 'Total Items',
-                    data: ${JSON.stringify(itemData)},
-                    borderColor: 'rgb(75, 192, 192)',
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    tension: 0.1
-                }, {
-                    label: 'Video Items',
-                    data: ${JSON.stringify(videoData)},
-                    borderColor: 'rgb(255, 99, 132)',
-                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                    tension: 0.1
-                }]
+            labels,
+            datasets: [
+              {
+                label: 'Sora Videos',
+                data: dataPoints.map(dp => dp.soraVideos),
+                borderColor: '#6c5ce7',
+                backgroundColor: gradientVideos,
+                pointBackgroundColor: '#6c5ce7',
+                pointBorderColor: '#fff',
+                pointRadius: 2,
+                tension: 0.35,
+                fill: true,
+              },
+              {
+                label: 'Cumulative Unique Videos',
+                data: dataPoints.map(dp => dp.uniqueVideos),
+                borderColor: '#2ecc71',
+                backgroundColor: gradientUniqueVideos,
+                pointBackgroundColor: '#2ecc71',
+                pointBorderColor: '#fff',
+                pointRadius: 2,
+                tension: 0.35,
+                fill: true
+              }
+            ]
             },
             options: {
                 responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+              legend: { display: true },
+              tooltip: {
+                callbacks: {
+                  label: (ctx) => {
+                    const label = ctx.dataset.label || '';
+                    const value = typeof ctx.parsed.y === 'number' ? ctx.parsed.y : 0;
+                    return label + ': ' + value.toLocaleString();
+                  }
+                }
+              }
+            },
                 scales: {
-                    y: {
-                        beginAtZero: true
+              y: {
+                type: 'linear',
+                beginAtZero: true,
+                grid: { drawOnChartArea: true }
+              },
+              x: {
+                grid: { display: false }
                     }
                 }
             }
@@ -299,40 +226,23 @@ export class FeedChartGenerator {
     </script>
 </body>
 </html>`;
-
-    try {
-      // Ensure output directory exists
-      const outputDir = path.dirname(htmlPath);
-      if (!fs.existsSync(outputDir)) {
-        fs.mkdirSync(outputDir, { recursive: true });
-      }
-
-      fs.writeFileSync(htmlPath, html);
-      console.log(`\n🌐 HTML chart saved to: ${htmlPath}`);
-      console.log(`   Open this file in your web browser to view interactive charts`);
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error(`❌ Error saving HTML chart: ${errorMessage}`);
-    }
+    return html;
   }
 
-  /**
-   * Generate all chart formats
-   */
-  generateAllCharts(outputDir?: string): void {
-    console.log('\n🎨 Generating charts...');
-
-    const finalOutputDir = outputDir || this.outputDir;
-
-    // ASCII chart
-    this.generateASCIIChart();
-
-    // Data table
-    this.generateDataTable();
-
-    // HTML chart
-    this.generateHTMLChart(path.join(finalOutputDir, 'feed-chart.html'));
-
-    console.log('\n✅ All charts generated successfully!');
+  async generateAllCharts(): Promise<void> {
+    if (!fs.existsSync(this.outputDir)) {
+      fs.mkdirSync(this.outputDir, { recursive: true });
+    }
+    const dataPoints = await this.loadFeedData();
+    if (dataPoints.length === 0) {
+      console.log('No data found. Please check the data directory path.');
+      return;
+    }
+    const html = this.generateHTML(dataPoints);
+    const outputPath = path.join(this.outputDir, 'feed-charts.html');
+    fs.writeFileSync(outputPath, html, 'utf-8');
+    console.log(`\nCharts generated successfully!`);
+    console.log(`HTML file saved to: ${outputPath}`);
+    console.log(`Open the file in your browser to view the interactive charts.`);
   }
 }

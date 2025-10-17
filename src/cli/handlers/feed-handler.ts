@@ -17,14 +17,10 @@ export function createFeedCommand(): Command {
         // Handle chart generation
         if (options.chart) {
           console.log('📊 Generating charts from monitoring data...');
-          const chartGenerator = new FeedChartGenerator(options.report, options.chartOutput);
-
-          if (chartGenerator.loadReport()) {
-            chartGenerator.generateAllCharts();
-          } else {
-            console.error('❌ Failed to load report for chart generation');
-            process.exit(1);
-          }
+          const dataDir = options.dataDir || './feed-monitor-results';
+          const outputDir = options.chartOutput || './feed-monitor-results';
+          const chartGenerator = new FeedChartGenerator(dataDir, outputDir);
+          await chartGenerator.generateAllCharts();
           return;
         }
 
